@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOS Statement P&L Calendar</title>
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --panel: #131820;
+      --muted: #7c8495;
+      --text: #e6ecf4;
+      --border: #1f2933;
+      --positive: 156, 227, 184;
+      --negative: 244, 99, 99;
+      --zero: #1f2733;
+      --accent: #6ed3ff;
+      --accent-soft: rgba(110, 211, 255, 0.15);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 20%, rgba(110, 211, 255, 0.06), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(74, 222, 189, 0.08), transparent 32%),
+                  var(--bg);
+      color: var(--text);
+      font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 18px 48px;
+    }
+
+    .shell {
+      width: min(1180px, 100%);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border: 1px solid var(--border);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      border-radius: 20px;
+      padding: 28px 30px 34px;
+      backdrop-filter: blur(16px);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(110, 211, 255, 0.3);
+      border-radius: 999px;
+      color: var(--accent);
+      letter-spacing: 0.2px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.2px;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 18px 22px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.1px;
+    }
+
+    .subline {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+    }
+
+    .dow {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.2px;
+    }
+
+    .cell {
+      position: relative;
+      min-height: 62px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--zero);
+      padding: 10px 10px 8px;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .cell:hover {
+      transform: translateY(-2px);
+      border-color: rgba(110, 211, 255, 0.35);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .cell.empty {
+      background: transparent;
+      border: 1px dashed var(--border);
+    }
+
+    .date {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #dfe7f1;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    .pnl {
+      margin-top: 8px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .pnl.positive { color: rgb(var(--positive)); }
+    .pnl.negative { color: rgb(var(--negative)); }
+    .pnl.zero { color: #c2c9d6; }
+
+    .fill {
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      z-index: 0;
+      opacity: 0.78;
+      transition: opacity 120ms ease;
+    }
+
+    .cell:hover .fill { opacity: 0.92; }
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .swatch {
+      width: 30px;
+      height: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .stat {
+      background: linear-gradient(150deg, rgba(110, 211, 255, 0.08), rgba(110, 211, 255, 0));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(60, 181, 132, 0.18);
+      color: rgb(var(--positive));
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+
+    .trend.down {
+      background: rgba(244, 99, 99, 0.18);
+      color: rgb(var(--negative));
+    }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="badge">TOS Statement</div>
+      <h1>Daily P&L – Calendar Heat</h1>
+    </header>
+
+    <div class="layout">
+      <section class="panel">
+        <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
+          <div>
+            <h2 id="month-label">Statement Month</h2>
+            <p class="subline" id="source-label">Data sourced from 2026-02-06-AccountStatement.csv; color intensity tracks P&L magnitude.</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button id="load-file-btn" style="padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--zero);color:var(--text);cursor:pointer;">Load CSV</button>
+            <input type="file" id="file-input" accept=".csv,text/csv" style="display:none;">
+          </div>
+        </div>
+
+        <div class="calendar" id="calendar-headings"></div>
+        <div class="calendar" id="calendar-grid"></div>
+        <div class="legend" style="margin-top:14px;">
+          <span>Loss</span>
+          <div class="swatch" style="background: linear-gradient(90deg, rgba(var(--negative),0.12), rgba(var(--negative),0.7));"></div>
+          <div class="swatch" style="background: linear-gradient(90deg, rgba(var(--positive),0.12), rgba(var(--positive),0.7));"></div>
+          <span>Gain</span>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <h2>Monthly snapshot</h2>
+        <p class="subline">Computed directly from the imported statement balances.</p>
+        <div class="summary-grid">
+          <div class="stat">
+            <small>Running total</small>
+            <div class="value" id="running-total">$0</div>
+          </div>
+          <div class="stat">
+            <small>Best day</small>
+            <div class="value" id="best-day">$0</div>
+          </div>
+          <div class="stat">
+            <small>Smallest day</small>
+            <div class="value" id="smallest-day">$0</div>
+          </div>
+          <div class="stat">
+            <small>Win rate</small>
+            <div class="value" id="win-rate">0%</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const STATEMENT_FILE = "2026-02-06-AccountStatement.csv";
+    const fallbackTrades = { "2026-02-06": 20.4 }; // derived from statement delta: 5005.01 -> 5025.41
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const calendarHeadings = document.getElementById("calendar-headings");
+    const calendarGrid = document.getElementById("calendar-grid");
+    const monthLabel = document.getElementById("month-label");
+    const sourceLabel = document.getElementById("source-label");
+    const fileInput = document.getElementById("file-input");
+    const loadFileBtn = document.getElementById("load-file-btn");
+
+    dayNames.forEach(name => {
+      const el = document.createElement("div");
+      el.className = "dow";
+      el.textContent = name;
+      calendarHeadings.appendChild(el);
+    });
+
+    loadFileBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", handleFileUpload);
+
+    init();
+
+    async function init() {
+      const trades = await loadTradesFromStatement(STATEMENT_FILE);
+      if (!Object.keys(trades).length) {
+        renderCalendar(fallbackTrades);
+        sourceLabel.textContent = "Loaded fallback data (fetch failed). Use 'Load CSV' to import your statement.";
+        return;
+      }
+      sourceLabel.textContent = `Data sourced from ${STATEMENT_FILE}`;
+      renderCalendar(trades);
+    }
+
+    async function loadTradesFromStatement(url) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Failed to load ${url}`);
+        const text = await res.text();
+        return parseStatement(text);
+      } catch (err) {
+        console.warn("Could not load statement:", err);
+        return {};
+      }
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const trades = parseStatement(reader.result || "");
+        if (!Object.keys(trades).length) {
+          sourceLabel.textContent = "Could not parse uploaded file.";
+          return;
+        }
+        sourceLabel.textContent = `Data sourced from ${file.name}`;
+        renderCalendar(trades);
+      };
+      reader.readAsText(file);
+    }
+
+    function parseStatement(text) {
+      const rows = parseCsv(text);
+      const dataByDate = new Map();
+
+      for (const row of rows) {
+        const dateRaw = row[0];
+        if (!dateRaw || !/\d/.test(dateRaw)) continue;
+        const isoDate = toIso(dateRaw);
+        if (!isoDate) continue;
+
+        const type = row[2] || "";
+        const balanceStr = row[8];
+        const balanceVal = cleanNumber(balanceStr);
+
+        if (!dataByDate.has(isoDate)) dataByDate.set(isoDate, { start: null, end: null });
+        const rec = dataByDate.get(isoDate);
+
+        if (type.trim().toUpperCase() === "BAL" && rec.start === null && balanceVal !== null) {
+          rec.start = balanceVal;
+        }
+
+        if (balanceVal !== null) {
+          rec.end = balanceVal; // track latest balance seen for the date
+        }
+      }
+
+      const trades = {};
+      for (const [date, { start, end }] of dataByDate.entries()) {
+        if (start !== null && end !== null) {
+          const pnl = +(end - start).toFixed(2);
+          trades[date] = pnl;
+        }
+      }
+      return trades;
+    }
+
+    function renderCalendar(trades) {
+      const [sampleDate] = Object.keys(trades);
+      const [yearStr, monthStr] = sampleDate.split("-");
+      const year = Number(yearStr);
+      const month = Number(monthStr) - 1;
+      const baseDate = new Date(year, month, 1);
+      const monthShort = baseDate.toLocaleDateString("en-US", { month: "short" });
+
+      calendarGrid.innerHTML = "";
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7; // Monday as first column
+
+      const values = Object.values(trades);
+      const maxMagnitude = Math.max(...values.map(v => Math.abs(v)), 1);
+      const runningTotal = values.reduce((a, b) => a + b, 0);
+      const wins = values.filter(v => v > 0).length;
+      const bestDay = Math.max(...values);
+      const smallestDay = Math.min(...values);
+
+      monthLabel.textContent = baseDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      document.getElementById("running-total").textContent = fmtCurrency(runningTotal);
+      document.getElementById("best-day").textContent = fmtCurrency(bestDay);
+      document.getElementById("smallest-day").textContent = fmtCurrency(smallestDay);
+      document.getElementById("win-rate").textContent = `${Math.round((wins / values.length) * 100)}%`;
+
+      for (let i = 0; i < firstWeekday; i++) {
+        calendarGrid.appendChild(emptyCell());
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const pnl = trades[key];
+        calendarGrid.appendChild(makeCell(day, pnl, maxMagnitude, monthShort));
+      }
+    }
+
+    function makeCell(day, pnl, maxMagnitude, monthShort) {
+      const cell = document.createElement("div");
+      cell.className = pnl === undefined ? "cell empty" : "cell";
+
+      const content = document.createElement("div");
+      content.className = "content";
+
+      const dateEl = document.createElement("div");
+      dateEl.className = "date";
+      dateEl.textContent = pnl === undefined ? "" : `${monthShort} ${day}`;
+
+      const pnlEl = document.createElement("div");
+      pnlEl.className = "pnl";
+
+      if (pnl === undefined) {
+        pnlEl.textContent = "";
+      } else if (pnl === 0) {
+        pnlEl.textContent = "$0";
+        pnlEl.classList.add("zero");
+      } else {
+        pnlEl.textContent = fmtCurrency(pnl);
+        pnlEl.classList.add(pnl > 0 ? "positive" : "negative");
+
+        const intensity = Math.min(1, Math.abs(pnl) / maxMagnitude);
+        const fill = document.createElement("div");
+        fill.className = "fill";
+        const color = pnl > 0 ? `rgba(${document.documentElement.style.getPropertyValue('--positive') || '156, 227, 184'}, ${0.15 + intensity * 0.7})`
+                              : `rgba(${document.documentElement.style.getPropertyValue('--negative') || '244, 99, 99'}, ${0.12 + intensity * 0.68})`;
+        fill.style.background = color;
+        cell.appendChild(fill);
+      }
+
+      content.appendChild(dateEl);
+      content.appendChild(pnlEl);
+      cell.appendChild(content);
+      return cell;
+    }
+
+    function emptyCell() {
+      const cell = document.createElement("div");
+      cell.className = "cell empty";
+      return cell;
+    }
+
+    function fmtCurrency(val) {
+      const sign = val >= 0 ? "+" : "-";
+      return `${sign}$${Math.abs(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function toIso(dateStr) {
+      // Handle formats like M/D/YYYY or M/D/YY
+      const parts = dateStr.split(/[\\/]/);
+      if (parts.length < 3) return null;
+      let [m, d, y] = parts.map(p => p.trim());
+      if (y.length === 2) y = `20${y}`;
+      const month = Number(m);
+      const day = Number(d);
+      const year = Number(y);
+      if (!month || !day || !year) return null;
+      return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
+
+    function cleanNumber(input) {
+      if (!input) return null;
+      let str = String(input).trim().replace(/^"+|"+$/g, "");
+      let negative = false;
+      if (str.includes("(") && str.includes(")")) negative = true;
+      str = str.replace(/[(),$]/g, "").replace(/,/g, "");
+      if (!str) return null;
+      const num = Number(str);
+      if (Number.isNaN(num)) return null;
+      return negative ? -num : num;
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let cur = [];
+      let field = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+
+        if (ch === '"' && inQuotes && next === '"') {
+          field += '"';
+          i++; // skip escaped quote
+          continue;
+        }
+
+        if (ch === '"') {
+          inQuotes = !inQuotes;
+          continue;
+        }
+
+        if (ch === "," && !inQuotes) {
+          cur.push(field);
+          field = "";
+          continue;
+        }
+
+        if ((ch === "\n" || ch === "\r") && !inQuotes) {
+          if (field.length || cur.length) {
+            cur.push(field);
+            rows.push(cur);
+            cur = [];
+            field = "";
+          }
+          continue;
+        }
+
+        field += ch;
+      }
+
+      if (field.length || cur.length) {
+        cur.push(field);
+        rows.push(cur);
+      }
+
+      // Trim BOM if present on the first field
+      if (rows.length && rows[0].length) {
+        rows[0][0] = rows[0][0].replace(/^\uFEFF/, "");
+      }
+
+      return rows;
+    }
+  </script>
+</body>
+</html>
