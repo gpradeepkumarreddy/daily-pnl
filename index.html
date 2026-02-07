@@ -208,6 +208,7 @@
       font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.2px;
+      color: #d1d8e3;
     }
 
     .trend {
@@ -231,6 +232,60 @@
     @media (max-width: 920px) {
       .layout { grid-template-columns: 1fr; }
     }
+
+    .ytd {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px 18px;
+    }
+
+    .ytd h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.1px;
+    }
+
+    .ytd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .ytd-card {
+      background: linear-gradient(150deg, rgba(110, 211, 255, 0.06), rgba(110, 211, 255, 0));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 13px;
+    }
+
+    .ytd-card small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .ytd-card .value {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.15px;
+      color: #d1d8e3;
+    }
+
+    .ytd-card .value.subtle {
+      color: #b2bdcc;
+    }
+
+    .ytd-card .value.positive { color: rgb(var(--positive)); }
+    .ytd-card .value.negative { color: rgb(var(--negative)); }
+
+    .stat .value.subtle { color: #b2bdcc; }
+    .stat .value.positive { color: rgb(var(--positive)); }
+    .stat .value.negative { color: rgb(var(--negative)); }
 
     .panel-header {
       display: flex;
@@ -325,6 +380,32 @@
         </div>
       </aside>
     </div>
+
+    <section class="ytd">
+      <h3>Year to Date</h3>
+      <div class="ytd-grid">
+        <div class="ytd-card">
+          <small>Running total (YTD)</small>
+          <div class="value subtle" id="ytd-total">$0</div>
+        </div>
+        <div class="ytd-card">
+          <small>Avg daily P&L (YTD)</small>
+          <div class="value subtle" id="ytd-avg">$0</div>
+        </div>
+        <div class="ytd-card">
+          <small>Win rate (YTD)</small>
+          <div class="value subtle" id="ytd-win-rate">0%</div>
+        </div>
+        <div class="ytd-card">
+          <small>Longest win streak</small>
+          <div class="value positive" id="ytd-win-streak">0 days</div>
+        </div>
+        <div class="ytd-card">
+          <small>Longest loss streak</small>
+          <div class="value negative" id="ytd-loss-streak">0 days</div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script>
@@ -338,6 +419,7 @@
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
+    let ytdStats = null;
 
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const calendarHeadings = document.getElementById("calendar-headings");
@@ -361,6 +443,7 @@
     async function init() {
       allTrades = await loadTradesFromCsv("trades.csv");
       monthKeys = getMonthKeys(allTrades);
+      ytdStats = computeYtd(allTrades);
 
       if (!monthKeys.length) {
         monthLabel.textContent = "No trades loaded";
@@ -370,6 +453,7 @@
       }
 
       setMonth(0); // latest month first
+      renderYtd(ytdStats);
     }
 
     async function loadTradesFromCsv(url) {
@@ -451,10 +535,11 @@
       const smallestDay = hasValues ? Math.min(...values) : 0;
 
       monthLabel.textContent = monthLabelFromKey(monthKey);
-      document.getElementById("running-total").textContent = fmtCurrency(runningTotal);
-      document.getElementById("best-day").textContent = fmtCurrency(bestDay);
-      document.getElementById("smallest-day").textContent = fmtCurrency(smallestDay);
-      document.getElementById("win-rate").textContent = hasValues ? `${Math.round((wins / values.length) * 100)}%` : "0%";
+      setValueWithTone(document.getElementById("running-total"), fmtCurrency(runningTotal), tone(runningTotal));
+      setValueWithTone(document.getElementById("best-day"), fmtCurrency(bestDay), tone(bestDay));
+      setValueWithTone(document.getElementById("smallest-day"), fmtCurrency(smallestDay), tone(smallestDay));
+      const winRateText = hasValues ? `${Math.round((wins / values.length) * 100)}%` : "0%";
+      setValueWithTone(document.getElementById("win-rate"), winRateText, tone(wins - (values.length - wins)));
 
       for (let i = 0; i < firstWeekday; i++) {
         calendarGrid.appendChild(emptyCell());
@@ -523,6 +608,96 @@
       if (!year || month < 0) return key;
       const baseDate = new Date(year, month, 1);
       return baseDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+
+    function tone(val, isPercent = false) {
+      if (val > 0) return "positive";
+      if (val < 0) return "negative";
+      return "subtle";
+    }
+
+    function setValueWithTone(el, text, toneClass) {
+      el.textContent = text;
+      el.classList.remove("positive", "negative", "subtle");
+      el.classList.add(toneClass || "subtle");
+    }
+
+    function computeYtd(trades) {
+      const entries = Object.entries(trades)
+        .map(([date, pnl]) => ({ date, pnl }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      const values = entries.map(e => e.pnl);
+      const total = values.reduce((a, b) => a + b, 0);
+      const wins = values.filter(v => v > 0).length;
+      const loss = values.filter(v => v < 0).length;
+      const winRate = values.length ? Math.round((wins / values.length) * 100) : 0;
+      const avg = values.length ? total / values.length : 0;
+
+      const streaks = computeStreaks(entries);
+
+      return {
+        total,
+        avg,
+        winRate,
+        longestWin: streaks.longestWin,
+        longestLoss: streaks.longestLoss
+      };
+    }
+
+    function computeStreaks(entries) {
+      let longestWin = 0;
+      let longestLoss = 0;
+      let currentWin = 0;
+      let currentLoss = 0;
+      let prevDate = null;
+
+      const isWeekend = d => {
+        const day = d.getDay();
+        return day === 0 || day === 6;
+      };
+
+      for (const { date, pnl } of entries) {
+        const d = new Date(date);
+        if (prevDate) {
+          // Reset streaks if there's a gap of more than 1 day excluding weekends
+          let gapDate = new Date(prevDate);
+          gapDate.setDate(gapDate.getDate() + 1);
+          while (gapDate < d) {
+            if (!isWeekend(gapDate)) {
+              currentWin = 0;
+              currentLoss = 0;
+            }
+            gapDate.setDate(gapDate.getDate() + 1);
+          }
+        }
+
+        if (pnl > 0) {
+          currentWin += 1;
+          currentLoss = 0;
+        } else if (pnl < 0) {
+          currentLoss += 1;
+          currentWin = 0;
+        } else {
+          currentWin = 0;
+          currentLoss = 0;
+        }
+
+        longestWin = Math.max(longestWin, currentWin);
+        longestLoss = Math.max(longestLoss, currentLoss);
+        prevDate = d;
+      }
+
+      return { longestWin, longestLoss };
+    }
+
+    function renderYtd(stats) {
+      if (!stats) return;
+      setValueWithTone(document.getElementById("ytd-total"), fmtCurrency(stats.total), tone(stats.total));
+      setValueWithTone(document.getElementById("ytd-avg"), fmtCurrency(stats.avg), tone(stats.avg));
+      setValueWithTone(document.getElementById("ytd-win-rate"), `${stats.winRate}%`, tone(stats.winRate, true));
+      setValueWithTone(document.getElementById("ytd-win-streak"), `${stats.longestWin} days`, stats.longestWin > 0 ? "positive" : "subtle");
+      setValueWithTone(document.getElementById("ytd-loss-streak"), `${stats.longestLoss} days`, stats.longestLoss > 0 ? "negative" : "subtle");
     }
   </script>
 </body>
