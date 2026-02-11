@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trading P&L Calendar</title>
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --panel: #131820;
+      --muted: #7c8495;
+      --text: #e6ecf4;
+      --border: #1f2933;
+      --positive: 156, 227, 184;
+      --negative: 244, 99, 99;
+      --zero: #1f2733;
+      --accent: #6ed3ff;
+      --accent-soft: rgba(110, 211, 255, 0.15);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 20%, rgba(110, 211, 255, 0.06), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(74, 222, 189, 0.08), transparent 32%),
+                  var(--bg);
+      color: var(--text);
+      font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 18px 48px;
+    }
+
+    .shell {
+      width: min(1180px, 100%);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border: 1px solid var(--border);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      border-radius: 20px;
+      padding: 28px 30px 34px;
+      backdrop-filter: blur(16px);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(110, 211, 255, 0.3);
+      border-radius: 999px;
+      color: var(--accent);
+      letter-spacing: 0.2px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.2px;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 18px 22px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.1px;
+    }
+
+    .subline {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+    }
+
+    .dow {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.2px;
+    }
+
+    .cell {
+      position: relative;
+      min-height: 62px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--zero);
+      padding: 10px 10px 8px;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    }
+
+    .cell:hover {
+      transform: translateY(-2px);
+      border-color: rgba(110, 211, 255, 0.35);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .cell.empty {
+      background: transparent;
+      border: 1px dashed var(--border);
+    }
+
+    .date {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #dfe7f1;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    .pnl {
+      margin-top: 8px;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .pnl.positive { color: rgb(var(--positive)); }
+    .pnl.negative { color: rgb(var(--negative)); }
+    .pnl.zero { color: #c2c9d6; }
+
+    .fill {
+      position: absolute;
+      inset: 0;
+      border-radius: 10px;
+      z-index: 0;
+      opacity: 0.78;
+      transition: opacity 120ms ease;
+    }
+
+    .cell:hover .fill { opacity: 0.92; }
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .swatch {
+      width: 30px;
+      height: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .stat {
+      background: linear-gradient(150deg, rgba(110, 211, 255, 0.08), rgba(110, 211, 255, 0));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .stat .value {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: #d1d8e3;
+    }
+
+    .trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(60, 181, 132, 0.18);
+      color: rgb(var(--positive));
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+
+    .trend.down {
+      background: rgba(244, 99, 99, 0.18);
+      color: rgb(var(--negative));
+    }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .ytd {
+      margin-top: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px 18px;
+    }
+
+    .ytd h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.1px;
+    }
+
+    .ytd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .ytd-card {
+      background: linear-gradient(150deg, rgba(110, 211, 255, 0.06), rgba(110, 211, 255, 0));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 13px;
+    }
+
+    .ytd-card small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .ytd-card .value {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.15px;
+      color: #d1d8e3;
+    }
+
+    .ytd-card .value.subtle {
+      color: #b2bdcc;
+    }
+
+    .ytd-card .value.positive { color: rgb(var(--positive)); }
+    .ytd-card .value.negative { color: rgb(var(--negative)); }
+
+    .stat .value.subtle { color: #b2bdcc; }
+    .stat .value.positive { color: rgb(var(--positive)); }
+    .stat .value.negative { color: rgb(var(--negative)); }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .month-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: var(--zero);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      transition: border-color 120ms ease, transform 120ms ease;
+    }
+
+    .nav-btn:hover {
+      border-color: rgba(110, 211, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="badge">P&L monitor — snapshot 2026-02-10 19:46</div>
+      <h1>Daily Trades – Calendar Heat</h1>
+    </header>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 id="month-label">September 2024</h2>
+            <p class="subline">Hover a day to see exact P&L. Color intensity represents magnitude.</p>
+          </div>
+          <div class="month-nav">
+            <button id="prev-month" class="nav-btn" aria-label="Previous month">← Prev</button>
+            <button id="next-month" class="nav-btn" aria-label="Next month">Next →</button>
+          </div>
+        </div>
+
+        <div class="calendar" id="calendar-headings"></div>
+        <div class="calendar" id="calendar-grid"></div>
+        <div class="legend" style="margin-top:14px;">
+          <span>Loss</span>
+          <div class="swatch" style="background: linear-gradient(90deg, rgba(var(--negative),0.12), rgba(var(--negative),0.7));"></div>
+          <div class="swatch" style="background: linear-gradient(90deg, rgba(var(--positive),0.12), rgba(var(--positive),0.7));"></div>
+          <span>Gain</span>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <h2>Monthly snapshot</h2>
+        <p class="subline">Quick metrics to keep you oriented while scanning the heat map.</p>
+        <div class="summary-grid">
+          <div class="stat">
+            <small>Running total</small>
+            <div class="value" id="running-total">$0</div>
+          </div>
+          <div class="stat">
+            <small>Highest day</small>
+            <div class="value" id="best-day">$0</div>
+          </div>
+          <div class="stat">
+            <small>Lowest day</small>
+            <div class="value" id="smallest-day">$0</div>
+          </div>
+          <div class="stat">
+            <small>Win rate</small>
+            <div class="value" id="win-rate">0%</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="ytd">
+      <h3>Year to Date</h3>
+      <div class="ytd-grid">
+        <div class="ytd-card">
+          <small>Running total (YTD)</small>
+          <div class="value subtle" id="ytd-total">$0</div>
+        </div>
+        <div class="ytd-card">
+          <small>Avg daily P&L (YTD)</small>
+          <div class="value subtle" id="ytd-avg">$0</div>
+        </div>
+        <div class="ytd-card">
+          <small>Win rate (YTD)</small>
+          <div class="value subtle" id="ytd-win-rate">0%</div>
+        </div>
+        <div class="ytd-card">
+          <small>Longest win streak</small>
+          <div class="value positive" id="ytd-win-streak">0 days</div>
+        </div>
+        <div class="ytd-card">
+          <small>Longest loss streak</small>
+          <div class="value negative" id="ytd-loss-streak">0 days</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const fallbackTrades = {
+  "2026-01-02": -186.0,
+  "2026-01-05": -900.0,
+  "2026-01-06": 630.0,
+  "2026-01-07": -170.0,
+  "2026-01-08": 882.0,
+  "2026-01-09": 202.0,
+  "2026-01-12": 484.0,
+  "2026-01-13": 629.0,
+  "2026-01-14": 550.0,
+  "2026-01-15": 842.0,
+  "2026-01-16": -1767.0,
+  "2026-01-20": -150.0,
+  "2026-01-21": 538.0,
+  "2026-01-22": 230.0,
+  "2026-01-23": 265.0,
+  "2026-01-26": -1290.0,
+  "2026-01-27": 922.0,
+  "2026-01-28": -327.0,
+  "2026-01-29": -2079.0,
+  "2026-01-30": 3262.0,
+  "2026-02-02": 1143.0,
+  "2026-02-03": 1421.0,
+  "2026-02-04": 597.0,
+  "2026-02-05": 1122.0,
+  "2026-02-06": 2136.0,
+  "2026-02-09": 745.0,
+  "2026-02-10": -1064.0
+};
+      "2026-02-02": 1143,
+      "2026-02-03": 1421,
+      "2026-02-04": 597,
+      "2026-02-05": 1122,
+      "2026-02-06": 2136
+    };
+    let allTrades = {};
+    let monthKeys = [];
+    let currentMonthIdx = 0;
+    let ytdStats = null;
+
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const calendarHeadings = document.getElementById("calendar-headings");
+    const calendarGrid = document.getElementById("calendar-grid");
+    const monthLabel = document.getElementById("month-label");
+    const prevBtn = document.getElementById("prev-month");
+    const nextBtn = document.getElementById("next-month");
+
+    dayNames.forEach(name => {
+      const el = document.createElement("div");
+      el.className = "dow";
+      el.textContent = name;
+      calendarHeadings.appendChild(el);
+    });
+
+    prevBtn.addEventListener("click", () => setMonth(currentMonthIdx + 1));
+    nextBtn.addEventListener("click", () => setMonth(currentMonthIdx - 1));
+
+    init();
+
+    async function init() {
+      allTrades = await Promise.resolve(fallbackTrades);
+      monthKeys = getMonthKeys(allTrades);
+      ytdStats = computeYtd(allTrades);
+
+      if (!monthKeys.length) {
+        monthLabel.textContent = "No trades loaded";
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+
+      setMonth(0); // latest month first
+      renderYtd(ytdStats);
+    }
+
+    async function loadTradesFromCsv(url) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Failed to load ${url}`);
+        const text = await res.text();
+        const parsed = parseTradesFromCsv(text);
+        if (Object.keys(parsed).length) return parsed;
+      } catch (err) {
+        console.warn("Using fallback trades:", err);
+      }
+      return { ...fallbackTrades };
+    }
+
+    function parseTradesFromCsv(text) {
+      const out = {};
+      const lines = text.split(/\r?\n/);
+      lines.forEach((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) return;
+        const parts = trimmed.split(",").map(s => s.trim());
+        if (parts.length < 2) return;
+        if (idx === 0 && parts[0].toLowerCase() === "date") return;
+        const [date, pnlStr] = parts;
+        const pnl = Number(pnlStr);
+        if (!date || Number.isNaN(pnl)) return;
+        out[date] = pnl;
+      });
+      return out;
+    }
+
+    function getMonthKeys(trades) {
+      const set = new Set();
+      Object.keys(trades).forEach(date => {
+        const [y, m] = date.split("-");
+        if (y && m) set.add(`${y}-${m}`);
+      });
+      return Array.from(set).sort().reverse(); // latest first
+    }
+
+    function setMonth(idx) {
+      if (!monthKeys.length) return;
+      currentMonthIdx = Math.min(Math.max(idx, 0), monthKeys.length - 1);
+      const key = monthKeys[currentMonthIdx];
+      renderCalendar(allTrades, key);
+      updateNavState();
+    }
+
+    function updateNavState() {
+      prevBtn.disabled = currentMonthIdx >= monthKeys.length - 1;
+      nextBtn.disabled = currentMonthIdx <= 0;
+    }
+
+    function renderCalendar(trades, monthKey) {
+      if (!monthKey) return;
+      const [yearStr, monthStr] = monthKey.split("-");
+      const year = Number(yearStr);
+      const month = Number(monthStr) - 1; // zero-based
+      const baseDate = new Date(year, month, 1);
+      const monthShort = baseDate.toLocaleDateString("en-US", { month: "short" });
+
+      const monthTrades = Object.entries(trades).reduce((acc, [date, pnl]) => {
+        if (date.startsWith(monthKey)) acc[date] = pnl;
+        return acc;
+      }, {});
+
+      calendarGrid.innerHTML = "";
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstWeekday = new Date(year, month, 1).getDay(); // Sunday as first column
+
+      const values = Object.values(monthTrades);
+      const hasValues = values.length > 0;
+      const maxMagnitude = Math.max(...values.map(v => Math.abs(v)), 1);
+      const runningTotal = values.reduce((a, b) => a + b, 0);
+      const wins = values.filter(v => v > 0).length;
+      const bestDay = hasValues ? Math.max(...values) : 0;
+      const smallestDay = hasValues ? Math.min(...values) : 0;
+
+      monthLabel.textContent = monthLabelFromKey(monthKey);
+      setValueWithTone(document.getElementById("running-total"), fmtCurrency(runningTotal), tone(runningTotal));
+      setValueWithTone(document.getElementById("best-day"), fmtCurrency(bestDay), tone(bestDay));
+      setValueWithTone(document.getElementById("smallest-day"), fmtCurrency(smallestDay), tone(smallestDay));
+      const winRateText = hasValues ? `${Math.round((wins / values.length) * 100)}%` : "0%";
+      setValueWithTone(document.getElementById("win-rate"), winRateText, tone(wins - (values.length - wins)));
+
+      for (let i = 0; i < firstWeekday; i++) {
+        calendarGrid.appendChild(emptyCell());
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const pnl = monthTrades[key];
+        calendarGrid.appendChild(makeCell(day, pnl, maxMagnitude, monthShort));
+      }
+    }
+
+    function makeCell(day, pnl, maxMagnitude, monthShort) {
+      const cell = document.createElement("div");
+      cell.className = pnl === undefined ? "cell empty" : "cell";
+
+      const content = document.createElement("div");
+      content.className = "content";
+
+      const dateEl = document.createElement("div");
+      dateEl.className = "date";
+      dateEl.textContent = pnl === undefined ? "" : `${monthShort} ${day}`;
+
+      const pnlEl = document.createElement("div");
+      pnlEl.className = "pnl";
+
+      if (pnl === undefined) {
+        pnlEl.textContent = "";
+      } else if (pnl === 0) {
+        pnlEl.textContent = "$0";
+        pnlEl.classList.add("zero");
+      } else {
+        pnlEl.textContent = fmtCurrency(pnl);
+        pnlEl.classList.add(pnl > 0 ? "positive" : "negative");
+
+        const intensity = Math.min(1, Math.abs(pnl) / maxMagnitude);
+        const fill = document.createElement("div");
+        fill.className = "fill";
+        const color = pnl > 0 ? `rgba(${document.documentElement.style.getPropertyValue('--positive') || '156, 227, 184'}, ${0.15 + intensity * 0.7})`
+                              : `rgba(${document.documentElement.style.getPropertyValue('--negative') || '244, 99, 99'}, ${0.12 + intensity * 0.68})`;
+        fill.style.background = color;
+        cell.appendChild(fill);
+      }
+
+      content.appendChild(dateEl);
+      content.appendChild(pnlEl);
+      cell.appendChild(content);
+      return cell;
+    }
+
+    function emptyCell() {
+      const cell = document.createElement("div");
+      cell.className = "cell empty";
+      return cell;
+    }
+
+    function fmtCurrency(val) {
+      const sign = val >= 0 ? "+" : "-";
+      return `${sign}$${Math.abs(val).toLocaleString()}`;
+    }
+
+    function monthLabelFromKey(key) {
+      const [yearStr, monthStr] = key.split("-");
+      const year = Number(yearStr);
+      const month = Number(monthStr) - 1;
+      if (!year || month < 0) return key;
+      const baseDate = new Date(year, month, 1);
+      return baseDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+
+    function tone(val, isPercent = false) {
+      if (val > 0) return "positive";
+      if (val < 0) return "negative";
+      return "subtle";
+    }
+
+    function setValueWithTone(el, text, toneClass) {
+      el.textContent = text;
+      el.classList.remove("positive", "negative", "subtle");
+      el.classList.add(toneClass || "subtle");
+    }
+
+    function computeYtd(trades) {
+      const entries = Object.entries(trades)
+        .map(([date, pnl]) => ({ date, pnl }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      const values = entries.map(e => e.pnl);
+      const total = values.reduce((a, b) => a + b, 0);
+      const wins = values.filter(v => v > 0).length;
+      const loss = values.filter(v => v < 0).length;
+      const winRate = values.length ? Math.round((wins / values.length) * 100) : 0;
+      const avg = values.length ? total / values.length : 0;
+
+      const streaks = computeStreaks(entries);
+
+      return {
+        total,
+        avg,
+        winRate,
+        longestWin: streaks.longestWin,
+        longestLoss: streaks.longestLoss
+      };
+    }
+
+    function computeStreaks(entries) {
+      let longestWin = 0;
+      let longestLoss = 0;
+      let currentWin = 0;
+      let currentLoss = 0;
+
+      for (const { date, pnl } of entries) {
+        if (pnl > 0) {
+          currentWin += 1;
+          currentLoss = 0;
+        } else if (pnl < 0) {
+          currentLoss += 1;
+          currentWin = 0;
+        } else {
+          currentWin = 0;
+          currentLoss = 0;
+        }
+
+        longestWin = Math.max(longestWin, currentWin);
+        longestLoss = Math.max(longestLoss, currentLoss);
+      }
+
+      return { longestWin, longestLoss };
+    }
+
+    function renderYtd(stats) {
+      if (!stats) return;
+      setValueWithTone(document.getElementById("ytd-total"), fmtCurrency(stats.total), tone(stats.total));
+      setValueWithTone(document.getElementById("ytd-avg"), fmtCurrency(stats.avg), tone(stats.avg));
+      setValueWithTone(document.getElementById("ytd-win-rate"), `${stats.winRate}%`, tone(stats.winRate, true));
+      setValueWithTone(document.getElementById("ytd-win-streak"), `${stats.longestWin} days`, stats.longestWin > 0 ? "positive" : "subtle");
+      setValueWithTone(document.getElementById("ytd-loss-streak"), `${stats.longestLoss} days`, stats.longestLoss > 0 ? "negative" : "subtle");
+    }
+  </script>
+</body>
+</html>
