@@ -1,4 +1,4 @@
-trades.csv
-index.html
-generate_today.py
-backup/
+*
+!.gitignore
+!index_today.html
+!CODEX.md
