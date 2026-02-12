@@ -230,7 +230,20 @@
     }
 
     @media (max-width: 920px) {
-      .layout { grid-template-columns: 1fr; }
+      body { padding: 20px 14px 32px; }
+      .layout { grid-template-columns: 1fr; gap: 14px; }
+      .shell { padding: 22px 18px 26px; }
+      .calendar { gap: 8px; }
+      .cell { min-height: 54px; padding: 8px 8px 6px; }
+      .date { font-size: 11px; }
+      .pnl { font-size: 14px; }
+      .legend { gap: 6px; font-size: 11px; }
+      .swatch { width: 24px; height: 8px; }
+      .nav-btn { padding: 7px 9px; font-size: 12px; }
+      h1 { font-size: 21px; }
+      h2 { font-size: 15px; }
+      .ytd { padding: 12px 14px 14px; }
+      .ytd-grid { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
     }
 
     .ytd {
@@ -330,7 +343,7 @@
 <body>
   <div class="shell">
     <header>
-      <div class="badge">P&L monitor — snapshot 2026-02-11 20:46</div>
+      <div class="badge">P&L monitor — snapshot 2026-02-11 20:49</div>
       <h1>Daily Trades – Calendar Heat</h1>
     </header>
 
