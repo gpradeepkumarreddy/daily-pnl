@@ -343,7 +343,7 @@
 <body>
   <div class="shell">
     <header>
-      <div class="badge">P&L monitor — snapshot 2026-02-11 20:49</div>
+      <div class="badge">P&L monitor — snapshot 2026-02-11 20:57</div>
       <h1>Daily Trades – Calendar Heat</h1>
     </header>
 
@@ -412,6 +412,10 @@
         <div class="ytd-card">
           <small>Longest win streak</small>
           <div class="value positive" id="ytd-win-streak">0 days</div>
+        </div>
+        <div class="ytd-card">
+          <small>Current win streak</small>
+          <div class="value positive" id="ytd-current-win">0 days</div>
         </div>
         <div class="ytd-card">
           <small>Longest loss streak</small>
@@ -677,7 +681,8 @@
         avg,
         winRate,
         longestWin: streaks.longestWin,
-        longestLoss: streaks.longestLoss
+        longestLoss: streaks.longestLoss,
+        currentWin: streaks.currentWin
       };
     }
 
@@ -703,7 +708,7 @@
         longestLoss = Math.max(longestLoss, currentLoss);
       }
 
-      return { longestWin, longestLoss };
+      return { longestWin, longestLoss, currentWin };
     }
 
     function renderYtd(stats) {
@@ -712,6 +717,7 @@
       setValueWithTone(document.getElementById("ytd-avg"), fmtCurrency(stats.avg), tone(stats.avg));
       setValueWithTone(document.getElementById("ytd-win-rate"), `${stats.winRate}%`, tone(stats.winRate, true));
       setValueWithTone(document.getElementById("ytd-win-streak"), `${stats.longestWin} days`, stats.longestWin > 0 ? "positive" : "subtle");
+      setValueWithTone(document.getElementById("ytd-current-win"), `${stats.currentWin} days`, stats.currentWin > 0 ? "positive" : "subtle");
       setValueWithTone(document.getElementById("ytd-loss-streak"), `${stats.longestLoss} days`, stats.longestLoss > 0 ? "negative" : "subtle");
     }
   </script>
