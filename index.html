@@ -29,27 +29,27 @@
                   var(--bg);
       color: var(--text);
       font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, -apple-system, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 18px 48px;
+      padding: 18px 14px 32px;
     }
 
     .shell {
-      width: min(1180px, 100%);
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
       background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
       border: 1px solid var(--border);
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
       border-radius: 20px;
-      padding: 28px 30px 34px;
+      padding: 22px 18px 26px;
       backdrop-filter: blur(16px);
     }
 
     header {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 22px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 18px;
     }
 
     .badge {
@@ -65,22 +65,23 @@
 
     h1 {
       margin: 0;
-      font-size: 24px;
+      font-size: 22px;
       letter-spacing: -0.2px;
       font-weight: 700;
+      line-height: 1.3;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 18px;
+      grid-template-columns: 1fr;
+      gap: 14px;
     }
 
     .panel {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 18px 18px 22px;
+      padding: 14px 12px 16px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
     }
 
@@ -100,7 +101,7 @@
     .calendar {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 10px;
+      gap: 8px;
     }
 
     .dow {
@@ -230,7 +231,24 @@
     }
 
     @media (max-width: 920px) {
-      .layout { grid-template-columns: 1fr; }
+      .nav-btn { padding: 7px 9px; font-size: 12px; }
+      h1 { font-size: 21px; }
+      h2 { font-size: 15px; }
+      .ytd { padding: 12px 14px 14px; }
+      .ytd-grid { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+      .summary-grid { grid-template-columns: 1fr; gap: 8px; }
+      .panel { padding: 14px 12px 16px; }
+      .badge { font-size: 11px; padding: 5px 10px; }
+    }
+
+    @media (min-width: 981px) {
+      body { padding: 32px 18px 48px; }
+      header { flex-direction: row; align-items: center; }
+      .layout { grid-template-columns: 2fr 1fr; gap: 18px; }
+      .shell { padding: 28px 30px 34px; }
+      .panel { padding: 18px 18px 22px; }
+      .calendar { gap: 10px; }
+      .cell { min-height: 62px; padding: 10px 10px 8px; }
     }
 
     .ytd {
@@ -330,7 +348,7 @@
 <body>
   <div class="shell">
     <header>
-      <div class="badge">P&L monitor</div>
+      <div class="badge">P&L monitor — snapshot 2026-02-15 21:50</div>
       <h1>Daily Trades – Calendar Heat</h1>
     </header>
 
@@ -401,6 +419,10 @@
           <div class="value positive" id="ytd-win-streak">0 days</div>
         </div>
         <div class="ytd-card">
+          <small>Current win streak</small>
+          <div class="value positive" id="ytd-current-win">0 days</div>
+        </div>
+        <div class="ytd-card">
           <small>Longest loss streak</small>
           <div class="value negative" id="ytd-loss-streak">0 days</div>
         </div>
@@ -410,12 +432,37 @@
 
   <script>
     const fallbackTrades = {
-      "2026-02-02": 1143,
-      "2026-02-03": 1421,
-      "2026-02-04": 597,
-      "2026-02-05": 1122,
-      "2026-02-06": 2136
-    };
+  "2026-01-02": -186.0,
+  "2026-01-05": -900.0,
+  "2026-01-06": 630.0,
+  "2026-01-07": -170.0,
+  "2026-01-08": 882.0,
+  "2026-01-09": 202.0,
+  "2026-01-12": 484.0,
+  "2026-01-13": 629.0,
+  "2026-01-14": 550.0,
+  "2026-01-15": 842.0,
+  "2026-01-16": -1767.0,
+  "2026-01-20": -150.0,
+  "2026-01-21": 538.0,
+  "2026-01-22": 230.0,
+  "2026-01-23": 265.0,
+  "2026-01-26": -1290.0,
+  "2026-01-27": 922.0,
+  "2026-01-28": -327.0,
+  "2026-01-29": -2079.0,
+  "2026-01-30": 3262.0,
+  "2026-02-02": 1143.0,
+  "2026-02-03": 1421.0,
+  "2026-02-04": 597.0,
+  "2026-02-05": 1122.0,
+  "2026-02-06": 2136.0,
+  "2026-02-09": 745.0,
+  "2026-02-10": -1064.0,
+  "2026-02-11": 1137.0,
+  "2026-02-12": -2000.0,
+  "2026-02-13": -1804.0
+};
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -441,7 +488,7 @@
     init();
 
     async function init() {
-      allTrades = await loadTradesFromCsv("trades.csv");
+      allTrades = await Promise.resolve(fallbackTrades);
       monthKeys = getMonthKeys(allTrades);
       ytdStats = computeYtd(allTrades);
 
@@ -641,7 +688,8 @@
         avg,
         winRate,
         longestWin: streaks.longestWin,
-        longestLoss: streaks.longestLoss
+        longestLoss: streaks.longestLoss,
+        currentWin: streaks.currentWin
       };
     }
 
@@ -650,28 +698,8 @@
       let longestLoss = 0;
       let currentWin = 0;
       let currentLoss = 0;
-      let prevDate = null;
-
-      const isWeekend = d => {
-        const day = d.getDay();
-        return day === 0 || day === 6;
-      };
 
       for (const { date, pnl } of entries) {
-        const d = new Date(date);
-        if (prevDate) {
-          // Reset streaks if there's a gap of more than 1 day excluding weekends
-          let gapDate = new Date(prevDate);
-          gapDate.setDate(gapDate.getDate() + 1);
-          while (gapDate < d) {
-            if (!isWeekend(gapDate)) {
-              currentWin = 0;
-              currentLoss = 0;
-            }
-            gapDate.setDate(gapDate.getDate() + 1);
-          }
-        }
-
         if (pnl > 0) {
           currentWin += 1;
           currentLoss = 0;
@@ -685,10 +713,9 @@
 
         longestWin = Math.max(longestWin, currentWin);
         longestLoss = Math.max(longestLoss, currentLoss);
-        prevDate = d;
       }
 
-      return { longestWin, longestLoss };
+      return { longestWin, longestLoss, currentWin };
     }
 
     function renderYtd(stats) {
@@ -697,6 +724,7 @@
       setValueWithTone(document.getElementById("ytd-avg"), fmtCurrency(stats.avg), tone(stats.avg));
       setValueWithTone(document.getElementById("ytd-win-rate"), `${stats.winRate}%`, tone(stats.winRate, true));
       setValueWithTone(document.getElementById("ytd-win-streak"), `${stats.longestWin} days`, stats.longestWin > 0 ? "positive" : "subtle");
+      setValueWithTone(document.getElementById("ytd-current-win"), `${stats.currentWin} days`, stats.currentWin > 0 ? "positive" : "subtle");
       setValueWithTone(document.getElementById("ytd-loss-streak"), `${stats.longestLoss} days`, stats.longestLoss > 0 ? "negative" : "subtle");
     }
   </script>
