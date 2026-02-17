@@ -101,8 +101,8 @@
 
     .calendar {
       display: grid;
-      grid-template-columns: repeat(7, minmax(44px, 1fr));
-      gap: 6px;
+      grid-template-columns: repeat(5, minmax(64px, 1fr));
+      gap: 8px;
       width: 100%;
       align-items: start;
     }
@@ -116,11 +116,11 @@
 
     .cell {
       position: relative;
-      min-height: 78px;
+      min-height: 86px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--zero);
-      padding: 8px 8px 6px;
+      padding: 10px 10px 8px;
       transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
       overflow: hidden;
     }
@@ -150,7 +150,7 @@
     .pnl {
       margin-top: 4px;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 14px;
       line-height: 1.2;
       word-break: break-word;
     }
@@ -451,12 +451,13 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
     let ytdStats = null;
 
-    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri"];
     const calendarHeadings = document.getElementById("calendar-headings");
     const calendarGrid = document.getElementById("calendar-grid");
     const monthLabel = document.getElementById("month-label");
@@ -551,7 +552,7 @@
       calendarGrid.innerHTML = "";
 
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const firstWeekday = new Date(year, month, 1).getDay();
+      const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7; // Monday index
 
       const values = Object.values(monthTrades);
       const hasValues = values.length > 0;
@@ -575,7 +576,10 @@
       for (let day = 1; day <= daysInMonth; day++) {
         const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
         const pnl = monthTrades[key];
-        calendarGrid.appendChild(makeCell(day, pnl, maxMagnitude, monthShort));
+        const dow = (new Date(year, month, day).getDay() + 6) % 7;
+        if (dow < 5) {
+          calendarGrid.appendChild(makeCell(day, pnl, maxMagnitude, monthShort));
+        }
       }
     }
 
@@ -599,7 +603,7 @@
         pnlEl.textContent = "$0";
         pnlEl.classList.add("zero");
       } else {
-        pnlEl.textContent = fmtCurrency(pnl);
+        pnlEl.textContent = fmtCompactCurrency(pnl);
         pnlEl.classList.add(pnl > 0 ? "positive" : "negative");
 
         const intensity = Math.min(1, Math.abs(pnl) / maxMagnitude);
@@ -626,6 +630,16 @@
     function fmtCurrency(val) {
       const sign = val >= 0 ? "+" : "-";
       return `${sign}$${Math.abs(val).toLocaleString()}`;
+    }
+
+    function fmtCompactCurrency(val) {
+      const sign = val >= 0 ? "+" : "-";
+      const abs = Math.abs(val);
+      if (abs >= 1000) {
+        const short = (abs / 1000).toFixed(abs >= 10000 ? 0 : 1);
+        return `${sign}$${short}k`;
+      }
+      return `${sign}$${abs}`;
     }
 
     function monthLabelFromKey(key) {
