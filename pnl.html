@@ -36,9 +36,9 @@
     }
 
     .trendline header span {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 700;
+      font-size: 18px;
+      color: var(--text);
+      font-weight: 800;
     }
 
     .trendline svg {
@@ -500,6 +500,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -743,7 +744,7 @@
       trendSvg.innerHTML = defs + path;
 
       const last = cumulative[cumulative.length - 1];
-      trendRange.textContent = fmtCompactCurrency(last);
+      trendRange.textContent = fmtCurrency(last);
       trendRange.className = tone(last);
     }
 
