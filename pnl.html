@@ -510,6 +510,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -756,7 +757,7 @@
       trendRange.textContent = fmtCurrency(last);
       const toneClass = tone(last);
       trendRange.className = toneClass;
-      if (toneClass === "positive") trendRange.style.color = "#00c853"; // Robinhood-like green
+      if (toneClass === "positive") trendRange.style.color = `rgb(${getPositive()})`;
       else if (toneClass === "negative") trendRange.style.color = `rgb(${getNegative()})`;
       else trendRange.style.color = "var(--text)";
     }
