@@ -99,6 +99,8 @@
       font-size: 13px;
     }
 
+    .mobile-hide { display: none; }
+
     .calendar {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -304,6 +306,7 @@
     }
 
     @media (min-width: 981px) {
+      .mobile-hide { display: block; }
       body { padding: 32px 18px 48px; }
       header { flex-direction: row; align-items: center; }
       .layout { grid-template-columns: 2fr 1fr; gap: 18px; }
@@ -312,14 +315,14 @@
       .calendar { gap: 10px; }
       .cell { min-height: 62px; padding: 10px 10px 8px; }
       .summary-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
-      .ytd-grid { grid-template-columns: repeat(3, minmax(160px, 1fr)); }
+      .ytd-grid { grid-template-columns: repeat(3, minmax(180px, 1fr)); }
     }
   </style>
 </head>
 <body>
   <div class="shell">
     <header>
-      <div class="badge" id="stamp">P&L monitor</div>
+      <div class="badge" id="stamp">P&L monitor — snapshot 2026-02-16 22:00</div>
       <h1>Daily Trades – Calendar Heat</h1>
     </header>
 
@@ -328,7 +331,7 @@
         <div class="panel-header">
           <div>
             <h2 id="month-label">Month</h2>
-            <p class="subline">Hover/tap a day to see exact P&L. Color intensity represents magnitude.</p>
+            <p class="subline mobile-hide">Hover a day to see exact P&L. Color intensity represents magnitude.</p>
           </div>
           <div class="month-nav">
             <button id="prev-month" class="nav-btn" aria-label="Previous month">← Prev</button>
@@ -403,8 +406,6 @@
 
   <script>
     const fallbackTrades = {
-      // DATA_MARKER
-  
   "2026-01-02": -186.0,
   "2026-01-05": -900.0,
   "2026-01-06": 630.0,
@@ -435,9 +436,8 @@
   "2026-02-11": 1137.0,
   "2026-02-12": -2000.0,
   "2026-02-13": -1804.0
+};
 
-
-    };
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -468,7 +468,7 @@
       monthKeys = getMonthKeys(allTrades);
       ytdStats = computeYtd(allTrades);
 
-      stamp.textContent = `P&L monitor — snapshot ${new Date().toISOString().slice(0,16).replace("T"," ")}`;
+      stamp.textContent = `P&L monitor — snapshot 2026-02-16 22:00 — snapshot ${new Date().toISOString().slice(0,16).replace("T"," ")}`;
 
       if (!monthKeys.length) {
         monthLabel.textContent = "No trades loaded";
