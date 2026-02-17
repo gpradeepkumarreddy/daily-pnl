@@ -427,6 +427,7 @@
 };
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -457,7 +458,9 @@
       monthKeys = getMonthKeys(allTrades);
       ytdStats = computeYtd(allTrades);
 
-      stamp.textContent = `P&L monitor — snapshot 2026-02-16 22:00 — snapshot ${new Date().toISOString().slice(0,16).replace("T"," ")}`;
+      if (stamp) {
+        stamp.textContent = `P&L monitor — snapshot ${new Date().toISOString().slice(0,16).replace("T"," ")}`;
+      }
 
       if (!monthKeys.length) {
         monthLabel.textContent = "No trades loaded";
