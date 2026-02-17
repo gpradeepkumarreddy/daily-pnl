@@ -358,7 +358,7 @@
 <body>
   <div class="shell">
     <header>
-      <h1>Daily Trades – Calendar Heat</h1>
+      <h1>Daily Trades – Calendar</h1>
     </header>
 
     <div class="layout">
@@ -496,6 +496,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -574,6 +575,7 @@
       currentMonthIdx = Math.min(Math.max(idx, 0), monthKeys.length - 1);
       const key = monthKeys[currentMonthIdx];
       renderCalendar(allTrades, key);
+      renderTrendline(allTrades);
       updateNavState();
     }
 
@@ -614,8 +616,6 @@
       setValueWithTone(document.getElementById("smallest-day"), fmtCurrency(smallestDay), tone(smallestDay));
       const winRateText = hasValues ? `${Math.round((wins / values.length) * 100)}%` : "0%";
       setValueWithTone(document.getElementById("win-rate"), winRateText, tone(wins - (values.length - wins)));
-
-      renderTrendline(trades, monthKey);
 
       for (let i = 0; i < firstWeekday; i++) {
         calendarGrid.appendChild(emptyCell());
@@ -705,10 +705,9 @@
       return 0;
     }
 
-    function renderTrendline(trades, monthKey) {
+    function renderTrendline(trades) {
       if (!trendSvg) return;
       const entries = Object.entries(trades)
-        .filter(([d]) => d.startsWith(monthKey))
         .sort((a, b) => a[0].localeCompare(b[0]));
       if (!entries.length) {
         trendSvg.innerHTML = "";
@@ -742,7 +741,9 @@
 
       const first = cumulative[0];
       const last = cumulative[cumulative.length - 1];
-      trendRange.textContent = `${fmtCompactCurrency(first)} → ${fmtCompactCurrency(last)}`;
+      const startDate = entries[0][0];
+      const endDate = entries[entries.length - 1][0];
+      trendRange.textContent = `${startDate} → ${endDate} (${fmtCompactCurrency(first)} → ${fmtCompactCurrency(last)})`;
     }
 
     function monthLabelFromKey(key) {
