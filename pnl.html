@@ -30,11 +30,12 @@
       color: var(--text);
       font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, -apple-system, sans-serif;
       padding: 10px 8px 20px;
+      overflow-x: hidden;
     }
 
     .shell {
       width: 100%;
-      max-width: 100%;
+      max-width: 720px;
       margin: 0 auto;
       background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
       border: 1px solid var(--border);
@@ -100,8 +101,8 @@
 
     .calendar {
       display: grid;
-      grid-template-columns: repeat(7, minmax(56px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(7, minmax(44px, 1fr));
+      gap: 6px;
       width: 100%;
       align-items: start;
     }
@@ -115,11 +116,11 @@
 
     .cell {
       position: relative;
-      min-height: 80px;
+      min-height: 78px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--zero);
-      padding: 10px 10px 8px;
+      padding: 8px 8px 6px;
       transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
       overflow: hidden;
     }
@@ -149,7 +150,7 @@
     .pnl {
       margin-top: 4px;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.2;
       word-break: break-word;
     }
@@ -317,10 +318,11 @@
       .layout { grid-template-columns: 2fr 1fr; gap: 18px; }
       .shell { padding: 22px 20px 26px; max-width: 920px; }
       .panel { padding: 16px 14px 18px; }
-      .calendar { gap: 10px; }
-      .cell { min-height: 62px; padding: 10px 10px 8px; }
+      .calendar { gap: 10px; grid-template-columns: repeat(7, minmax(60px, 1fr)); }
+      .cell { min-height: 68px; padding: 10px 10px 8px; }
       .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .ytd-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .pnl { font-size: 14px; }
     }
   </style>
 </head>
@@ -441,6 +443,7 @@
   "2026-02-12": -2000.0,
   "2026-02-13": -1804.0
 };
+
 
 
 
