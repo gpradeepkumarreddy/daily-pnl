@@ -75,13 +75,17 @@
     }
 
     .panel {
-      background: linear-gradient(135deg, rgba(110, 211, 255, 0.02), rgba(110, 211, 255, 0.01));
+      background: #111720;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 12px 10px 14px;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
       width: 100%;
       margin: 0 auto;
+    }
+
+    .panel-month {
+      background: linear-gradient(145deg, rgba(110, 211, 255, 0.06), rgba(110, 211, 255, 0.02));
     }
 
     .panel h2 {
@@ -116,7 +120,7 @@
 
     .cell {
       position: relative;
-      min-height: 72px;
+      min-height: 68px;
       border-radius: 12px;
       border: 1px solid var(--border);
       background: var(--zero);
@@ -224,7 +228,7 @@
 
     .ytd {
       margin-top: 12px;
-      background: linear-gradient(135deg, rgba(244, 99, 99, 0.02), rgba(244, 99, 99, 0.01));
+      background: linear-gradient(145deg, rgba(244, 99, 99, 0.05), rgba(244, 99, 99, 0.015));
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 12px 12px 14px;
@@ -333,7 +337,7 @@
     </header>
 
     <div class="layout">
-      <section class="panel">
+      <section class="panel panel-month">
         <div class="panel-header">
           <div>
             <h2 id="month-label">Month</h2>
@@ -455,6 +459,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -555,7 +560,7 @@
       calendarGrid.innerHTML = "";
 
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7; // Monday index
+      const firstWeekday = firstTradingDayOffset(year, month);
 
       const values = Object.values(monthTrades);
       const hasValues = values.length > 0;
@@ -579,8 +584,8 @@
       for (let day = 1; day <= daysInMonth; day++) {
         const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
         const pnl = monthTrades[key];
-        const dow = (new Date(year, month, day).getDay() + 6) % 7;
-        if (dow < 5) {
+        const dow = weekdayIndex(year, month, day);
+        if (dow !== null) {
           calendarGrid.appendChild(makeCell(day, pnl, maxMagnitude, monthShort));
         }
       }
@@ -643,6 +648,21 @@
         return `${sign}$${short}k`;
       }
       return `${sign}$${abs}`;
+    }
+
+    function weekdayIndex(year, month, day) {
+      const dow = new Date(year, month, day).getDay(); // 0 Sun ... 6 Sat
+      if (dow >= 1 && dow <= 5) return dow - 1; // Mon=0
+      return null;
+    }
+
+    function firstTradingDayOffset(year, month) {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const idx = weekdayIndex(year, month, day);
+        if (idx !== null) return idx;
+      }
+      return 0;
     }
 
     function monthLabelFromKey(key) {
