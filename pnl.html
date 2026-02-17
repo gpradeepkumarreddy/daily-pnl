@@ -402,7 +402,42 @@
   </div>
 
   <script>
-    const fallbackTrades = {};
+    const fallbackTrades = {
+      // DATA_MARKER
+  
+  "2026-01-02": -186.0,
+  "2026-01-05": -900.0,
+  "2026-01-06": 630.0,
+  "2026-01-07": -170.0,
+  "2026-01-08": 882.0,
+  "2026-01-09": 202.0,
+  "2026-01-12": 484.0,
+  "2026-01-13": 629.0,
+  "2026-01-14": 550.0,
+  "2026-01-15": 842.0,
+  "2026-01-16": -1767.0,
+  "2026-01-20": -150.0,
+  "2026-01-21": 538.0,
+  "2026-01-22": 230.0,
+  "2026-01-23": 265.0,
+  "2026-01-26": -1290.0,
+  "2026-01-27": 922.0,
+  "2026-01-28": -327.0,
+  "2026-01-29": -2079.0,
+  "2026-01-30": 3262.0,
+  "2026-02-02": 1143.0,
+  "2026-02-03": 1421.0,
+  "2026-02-04": 597.0,
+  "2026-02-05": 1122.0,
+  "2026-02-06": 2136.0,
+  "2026-02-09": 745.0,
+  "2026-02-10": -1064.0,
+  "2026-02-11": 1137.0,
+  "2026-02-12": -2000.0,
+  "2026-02-13": -1804.0
+
+
+    };
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -429,7 +464,7 @@
     init();
 
     async function init() {
-      allTrades = await loadTradesFromCsv("trades.csv");
+      allTrades = { ...fallbackTrades };
       monthKeys = getMonthKeys(allTrades);
       ytdStats = computeYtd(allTrades);
 
@@ -444,19 +479,6 @@
 
       setMonth(0);
       renderYtd(ytdStats);
-    }
-
-    async function loadTradesFromCsv(url) {
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Failed to load ${url}`);
-        const text = await res.text();
-        const parsed = parseTradesFromCsv(text);
-        if (Object.keys(parsed).length) return parsed;
-      } catch (err) {
-        console.warn("Using fallback trades:", err);
-      }
-      return { ...fallbackTrades };
     }
 
     function parseTradesFromCsv(text) {
