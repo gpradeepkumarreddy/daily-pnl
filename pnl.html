@@ -29,14 +29,16 @@
 
     .trendline header {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       margin-bottom: 6px;
+      gap: 8px;
     }
 
     .trendline header span {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--muted);
+      font-weight: 700;
     }
 
     .trendline svg {
@@ -497,6 +499,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -530,7 +533,7 @@
       ytdStats = computeYtd(allTrades);
 
       if (stamp) {
-        stamp.textContent = `P&L monitor — snapshot ${new Date().toISOString().slice(0,16).replace("T"," ")}`;
+        stamp.textContent = `P&L monitor — snapshot 2026-02-17 07:00 — snapshot 2026-02-17 05:00 — snapshot 2026-02-17 03:00 — snapshot 2026-02-17 01:00 — snapshot 2026-02-16 23:00 — snapshot ${new Date().toISOString().slice(0,16).replace("T"," ")}`;
       }
 
       if (!monthKeys.length) {
@@ -739,11 +742,9 @@
       trendSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
       trendSvg.innerHTML = defs + path;
 
-      const first = cumulative[0];
       const last = cumulative[cumulative.length - 1];
-      const startDate = entries[0][0];
-      const endDate = entries[entries.length - 1][0];
-      trendRange.textContent = `${startDate} → ${endDate} (${fmtCompactCurrency(first)} → ${fmtCompactCurrency(last)})`;
+      trendRange.textContent = fmtCompactCurrency(last);
+      trendRange.className = tone(last);
     }
 
     function monthLabelFromKey(key) {
