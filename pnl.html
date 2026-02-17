@@ -41,7 +41,7 @@
     .trendline header span {
       font-size: 18px;
       color: var(--text);
-      font-weight: 800;
+      font-weight: 700;
     }
 
     .trendline svg {
@@ -505,6 +505,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -749,7 +750,11 @@
 
       const last = cumulative[cumulative.length - 1];
       trendRange.textContent = fmtCurrency(last);
-      trendRange.className = tone(last);
+      const toneClass = tone(last);
+      trendRange.className = toneClass;
+      if (toneClass === "positive") trendRange.style.color = `rgb(${getPositive()})`;
+      else if (toneClass === "negative") trendRange.style.color = `rgb(${getNegative()})`;
+      else trendRange.style.color = "var(--text)";
     }
 
     function monthLabelFromKey(key) {
