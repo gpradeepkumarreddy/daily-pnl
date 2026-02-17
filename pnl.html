@@ -39,9 +39,9 @@
     }
 
     .trendline header span {
-      font-size: 20px;
+      font-size: 21px;
       color: var(--text);
-      font-weight: 600;
+      font-weight: 500;
     }
 
     .trendline svg {
@@ -509,6 +509,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -755,7 +756,7 @@
       trendRange.textContent = fmtCurrency(last);
       const toneClass = tone(last);
       trendRange.className = toneClass;
-      if (toneClass === "positive") trendRange.style.color = `rgb(${getPositive()})`;
+      if (toneClass === "positive") trendRange.style.color = "#00c853"; // Robinhood-like green
       else if (toneClass === "negative") trendRange.style.color = `rgb(${getNegative()})`;
       else trendRange.style.color = "var(--text)";
     }
