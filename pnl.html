@@ -32,7 +32,7 @@
 
     .trendline header {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
       margin-bottom: 6px;
       gap: 8px;
@@ -42,6 +42,27 @@
       font-size: 21px;
       color: var(--text);
       font-weight: 500;
+    }
+
+    .chart-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .chart-toggle button {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .chart-toggle button.active {
+      background: rgba(110, 211, 255, 0.12);
+      color: var(--text);
     }
 
     .trendline svg {
@@ -370,8 +391,13 @@
       <div class="trendline">
         <header>
           <span id="trend-range"></span>
+          <div class="chart-toggle">
+            <button id="line-btn" class="active" type="button">Line</button>
+            <button id="bar-btn" type="button">Bars</button>
+          </div>
         </header>
         <svg id="trend-svg" viewBox="0 0 300 80" preserveAspectRatio="none"></svg>
+        <svg id="bar-svg" viewBox="0 0 300 80" preserveAspectRatio="none" style="display:none;"></svg>
       </div>
 
       <section class="panel panel-month">
@@ -513,11 +539,15 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
     let ytdStats = null;
     const trendSvg = document.getElementById("trend-svg");
+    const barSvg = document.getElementById("bar-svg");
+    const lineBtn = document.getElementById("line-btn");
+    const barBtn = document.getElementById("bar-btn");
     const trendRange = document.getElementById("trend-range");
 
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -537,6 +567,10 @@
 
     prevBtn.addEventListener("click", () => setMonth(currentMonthIdx + 1));
     nextBtn.addEventListener("click", () => setMonth(currentMonthIdx - 1));
+    if (lineBtn && barBtn) {
+      lineBtn.addEventListener("click", () => switchChart("line"));
+      barBtn.addEventListener("click", () => switchChart("bars"));
+    }
 
     init();
 
@@ -592,6 +626,7 @@
       const key = monthKeys[currentMonthIdx];
       renderCalendar(allTrades, key);
       renderTrendline(allTrades);
+      renderBars(allTrades);
       updateNavState();
     }
 
@@ -762,6 +797,49 @@
       if (toneClass === "positive") trendRange.style.color = `rgb(${getPositive()})`;
       else if (toneClass === "negative") trendRange.style.color = `rgb(${getNegative()})`;
       else trendRange.style.color = "var(--text)";
+    }
+
+    function renderBars(trades) {
+      if (!barSvg) return;
+      const entries = Object.entries(trades)
+        .sort((a, b) => a[0].localeCompare(b[0]));
+      if (!entries.length) {
+        barSvg.innerHTML = "";
+        return;
+      }
+      const maxBars = 30;
+      const slice = entries.slice(-maxBars);
+      const values = slice.map(([, v]) => v);
+      const maxAbs = Math.max(...values.map(v => Math.abs(v)), 1);
+      const width = 300;
+      const height = 80;
+      const barWidth = width / slice.length;
+
+      const bars = slice.map(([date, v], i) => {
+        const barHeight = (Math.abs(v) / maxAbs) * (height - 12);
+        const x = i * barWidth + 2;
+        const y = v >= 0 ? height - barHeight - 4 : height - 4;
+        const fill = v >= 0 ? `rgba(${getPositive()},0.7)` : `rgba(${getNegative()},0.7)`;
+        return `<rect x="${x}" y="${v >=0 ? y : height - 4}" width="${barWidth - 4}" height="${barHeight}" rx="3" fill="${fill}"></rect>`;
+      }).join("");
+
+      barSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      barSvg.innerHTML = bars;
+    }
+
+    function switchChart(which) {
+      if (!trendSvg || !barSvg || !lineBtn || !barBtn) return;
+      if (which === "line") {
+        trendSvg.style.display = "block";
+        barSvg.style.display = "none";
+        lineBtn.classList.add("active");
+        barBtn.classList.remove("active");
+      } else {
+        trendSvg.style.display = "none";
+        barSvg.style.display = "block";
+        lineBtn.classList.remove("active");
+        barBtn.classList.add("active");
+      }
     }
 
     function monthLabelFromKey(key) {
