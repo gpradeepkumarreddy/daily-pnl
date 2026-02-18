@@ -540,6 +540,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -549,6 +550,7 @@
     const dotLine = document.getElementById("dot-line");
     const dotBars = document.getElementById("dot-bars");
     const trendlineContainer = document.querySelector(".trendline");
+    let activeChart = "line";
     const trendRange = document.getElementById("trend-range");
 
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -606,6 +608,7 @@
 
       setMonth(0);
       renderYtd(ytdStats);
+      switchChart(activeChart);
     }
 
     function parseTradesFromCsv(text) {
@@ -842,18 +845,13 @@
     }
 
     function switchChart(which) {
-      if (!trendSvg || !barSvg || !lineBtn || !barBtn) return;
-      if (which === "line") {
-        trendSvg.style.display = "block";
-        barSvg.style.display = "none";
-        dotLine?.classList.add("active");
-        dotBars?.classList.remove("active");
-      } else {
-        trendSvg.style.display = "none";
-        barSvg.style.display = "block";
-        dotLine?.classList.remove("active");
-        dotBars?.classList.add("active");
-      }
+      if (!trendSvg || !barSvg) return;
+      activeChart = which === "bars" ? "bars" : "line";
+      const showLine = activeChart === "line";
+      trendSvg.style.display = showLine ? "block" : "none";
+      barSvg.style.display = showLine ? "none" : "block";
+      if (dotLine) dotLine.classList.toggle("active", showLine);
+      if (dotBars) dotBars.classList.toggle("active", !showLine);
     }
 
     function monthLabelFromKey(key) {
