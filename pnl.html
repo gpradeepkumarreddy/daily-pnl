@@ -541,6 +541,7 @@
 
 
 
+
     let allTrades = {};
     let monthKeys = [];
     let currentMonthIdx = 0;
@@ -832,12 +833,13 @@
       const height = 80;
       const barWidth = width / slice.length;
 
+      const mid = height / 2;
       const bars = slice.map(([date, v], i) => {
-        const barHeight = (Math.abs(v) / maxAbs) * (height - 12);
+        const barHeight = (Math.abs(v) / maxAbs) * (height - 16);
         const x = i * barWidth + 2;
-        const y = v >= 0 ? height - barHeight - 4 : height - 4;
+        const y = v >= 0 ? mid - barHeight : mid;
         const fill = v >= 0 ? `rgba(${getPositive()},0.7)` : `rgba(${getNegative()},0.7)`;
-        return `<rect x="${x}" y="${v >=0 ? y : height - 4}" width="${barWidth - 4}" height="${barHeight}" rx="3" fill="${fill}"></rect>`;
+        return `<rect x="${x}" y="${y}" width="${barWidth - 4}" height="${barHeight}" rx="3" fill="${fill}"></rect>`;
       }).join("");
 
       barSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
