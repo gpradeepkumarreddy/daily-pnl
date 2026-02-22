@@ -136,6 +136,7 @@
 
 .panel-month {
       background: linear-gradient(145deg, rgba(110, 211, 255, 0.12), rgba(110, 211, 255, 0.04));
+      overflow: hidden;
     }
 
 .panel-month-total {
@@ -428,8 +429,9 @@
       }
       .shell { padding: 28px 26px 30px; max-width: 1220px; }
       .panel { padding: 16px 14px 18px; width: 100%; }
-      .calendar { gap: 10px; grid-template-columns: repeat(5, minmax(105px, 1fr)); padding-left: 6px; padding-right: 6px; }
+      .calendar { gap: 10px; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-left: 6px; padding-right: 6px; }
       .cell { min-height: 70px; padding: 10px 8px 8px; }
+      .panel-month .calendar { max-width: 640px; margin: 0 auto; width: 100%; }
       .date { font-size: 12px; }
       .pnl { font-size: 14px; }
       .summary-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
