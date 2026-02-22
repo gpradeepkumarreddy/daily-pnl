@@ -725,20 +725,20 @@
       });
       return Object.entries(totals)
         .map(([key, total]) => ({ key, total }))
-        .sort((a, b) => b.key.localeCompare(a.key));
+        .sort((a, b) => a.key.localeCompare(b.key)); // oldest->newest for left-to-right timeline
     }
 
     function monthNameFromKey(key) {
       const [y, m] = key.split("-");
       const date = new Date(Number(y), Number(m) - 1, 1);
-      return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      return date.toLocaleDateString("en-US", { month: "short" });
     }
 
     function renderMonthTotals(trades) {
       if (!monthTotalList) return;
       const months = computeMonthlyTotals(trades);
       monthTotalList.innerHTML = "";
-      months.slice(0, 6).forEach(({ key, total }) => {
+      months.slice(-6).forEach(({ key, total }) => {
         const row = document.createElement("div");
         row.className = "month-total-row";
         const label = document.createElement("div");
