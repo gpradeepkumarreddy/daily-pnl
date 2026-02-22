@@ -140,9 +140,9 @@
 
 .panel-month-total {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
     }
 
 .month-total-label {
@@ -152,12 +152,38 @@
       letter-spacing: 0.2px;
     }
 
-.month-total-value {
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.2px;
-      color: rgb(var(--positive));
+.month-total-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      width: 100%;
     }
+
+.month-total-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 13px;
+      letter-spacing: 0.1px;
+    }
+
+.month-total-row .label {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+.month-total-row .value {
+      font-weight: 700;
+      letter-spacing: -0.1px;
+    }
+
+.month-total-row .value.positive { color: rgb(var(--positive)); }
+.month-total-row .value.negative { color: rgb(var(--negative)); }
+.month-total-row .value.subtle { color: #c2c9d6; }
 
     .panel h2 {
       margin: 0 0 10px;
@@ -391,7 +417,7 @@
       body { padding: 32px 18px 48px; }
       header { flex-direction: row; align-items: center; }
       .layout {
-        grid-template-columns: 1.3fr 1fr;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
         gap: 20px;
         align-items: start;
         grid-template-areas:
@@ -402,8 +428,8 @@
       }
       .shell { padding: 28px 26px 30px; max-width: 1220px; }
       .panel { padding: 16px 14px 18px; width: 100%; }
-      .calendar { gap: 12px; grid-template-columns: repeat(5, minmax(110px, 1fr)); padding-left: 6px; padding-right: 6px; }
-      .cell { min-height: 82px; padding: 10px 8px 8px; }
+      .calendar { gap: 12px; grid-template-columns: repeat(5, minmax(120px, 1fr)); padding-left: 6px; padding-right: 6px; }
+      .cell { min-height: 74px; padding: 10px 8px 8px; }
       .date { font-size: 12px; }
       .pnl { font-size: 14px; }
       .summary-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
@@ -437,8 +463,8 @@
       </div>
 
       <div class="panel panel-month-total">
-        <div class="month-total-label">Month total</div>
-        <div class="month-total-value" id="month-total">$0</div>
+        <div class="month-total-label">Recent months</div>
+        <div class="month-total-list" id="month-total-list"></div>
       </div>
 
       <section class="panel panel-month">
@@ -601,6 +627,7 @@
     const dotBars = document.getElementById("dot-bars");
     const trendlineContainer = document.querySelector(".trendline");
     let activeChart = "line";
+    const monthTotalList = document.getElementById("month-total-list");
     const trendRange = document.getElementById("trend-range");
 
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -644,9 +671,10 @@
       allTrades = { ...fallbackTrades };
       monthKeys = getMonthKeys(allTrades);
       ytdStats = computeYtd(allTrades);
+      renderMonthTotals(allTrades);
 
       if (stamp) {
-        stamp.textContent = `P&L monitor — snapshot 2026-02-21 23:00 — snapshot 2026-02-20 12:01 — snapshot 2026-02-20 11:00 — snapshot 2026-02-20 10:03 — snapshot 2026-02-20 09:25 — snapshot 2026-02-20 09:00 — snapshot 2026-02-20 08:50 — snapshot 2026-02-20 08:00 — snapshot 2026-02-20 07:00 — snapshot 2026-02-19 23:00 — snapshot 2026-02-19 21:00 — snapshot 2026-02-19 09:00 — snapshot 2026-02-19 03:00 — snapshot 2026-02-19 02:00 — snapshot 2026-02-19 01:00 — snapshot 2026-02-19 00:00 — snapshot 2026-02-18 22:05 — snapshot 2026-02-18 21:10 — snapshot 2026-02-18 12:00 — snapshot 2026-02-18 11:01 — snapshot 2026-02-18 09:00 — snapshot 2026-02-18 08:00 — snapshot 2026-02-18 07:03 — snapshot 2026-02-18 04:00 — snapshot 2026-02-18 03:00 — snapshot 2026-02-18 01:00 — snapshot 2026-02-17 23:05 — snapshot 2026-02-17 22:09 — snapshot 2026-02-17 20:00 — snapshot 2026-02-17 19:00 — snapshot 2026-02-17 18:00 — snapshot 2026-02-17 17:00 — snapshot 2026-02-17 16:00 — snapshot 2026-02-17 15:00 — snapshot 2026-02-17 13:01 — snapshot 2026-02-17 12:00 — snapshot 2026-02-17 11:00 — snapshot 2026-02-17 10:00 — snapshot 2026-02-17 09:27 — snapshot 2026-02-17 09:21 — snapshot 2026-02-17 09:20 — snapshot 2026-02-17 09:00 — snapshot 2026-02-17 07:00 — snapshot 2026-02-17 05:00 — snapshot 2026-02-17 03:00 — snapshot 2026-02-17 01:00 — snapshot 2026-02-16 23:00 — snapshot ${new Date().toISOString().slice(0,16).replace("T"," ")}`;
+        stamp.textContent = `P&L monitor — snapshot 2026-02-21 23:33 — snapshot 2026-02-21 23:00 — snapshot 2026-02-20 12:01 — snapshot 2026-02-20 11:00 — snapshot 2026-02-20 10:03 — snapshot 2026-02-20 09:25 — snapshot 2026-02-20 09:00 — snapshot 2026-02-20 08:50 — snapshot 2026-02-20 08:00 — snapshot 2026-02-20 07:00 — snapshot 2026-02-19 23:00 — snapshot 2026-02-19 21:00 — snapshot 2026-02-19 09:00 — snapshot 2026-02-19 03:00 — snapshot 2026-02-19 02:00 — snapshot 2026-02-19 01:00 — snapshot 2026-02-19 00:00 — snapshot 2026-02-18 22:05 — snapshot 2026-02-18 21:10 — snapshot 2026-02-18 12:00 — snapshot 2026-02-18 11:01 — snapshot 2026-02-18 09:00 — snapshot 2026-02-18 08:00 — snapshot 2026-02-18 07:03 — snapshot 2026-02-18 04:00 — snapshot 2026-02-18 03:00 — snapshot 2026-02-18 01:00 — snapshot 2026-02-17 23:05 — snapshot 2026-02-17 22:09 — snapshot 2026-02-17 20:00 — snapshot 2026-02-17 19:00 — snapshot 2026-02-17 18:00 — snapshot 2026-02-17 17:00 — snapshot 2026-02-17 16:00 — snapshot 2026-02-17 15:00 — snapshot 2026-02-17 13:01 — snapshot 2026-02-17 12:00 — snapshot 2026-02-17 11:00 — snapshot 2026-02-17 10:00 — snapshot 2026-02-17 09:27 — snapshot 2026-02-17 09:21 — snapshot 2026-02-17 09:20 — snapshot 2026-02-17 09:00 — snapshot 2026-02-17 07:00 — snapshot 2026-02-17 05:00 — snapshot 2026-02-17 03:00 — snapshot 2026-02-17 01:00 — snapshot 2026-02-16 23:00 — snapshot ${new Date().toISOString().slice(0,16).replace("T"," ")}`;
       }
 
       if (!monthKeys.length) {
@@ -685,6 +713,44 @@
         if (y && m) set.add(`${y}-${m}`);
       });
       return Array.from(set).sort().reverse();
+    }
+
+    function computeMonthlyTotals(trades) {
+      const totals = {};
+      Object.entries(trades).forEach(([date, pnl]) => {
+        const [y, m] = date.split("-");
+        if (!y || !m) return;
+        const key = `${y}-${m}`;
+        totals[key] = (totals[key] || 0) + pnl;
+      });
+      return Object.entries(totals)
+        .map(([key, total]) => ({ key, total }))
+        .sort((a, b) => b.key.localeCompare(a.key));
+    }
+
+    function monthNameFromKey(key) {
+      const [y, m] = key.split("-");
+      const date = new Date(Number(y), Number(m) - 1, 1);
+      return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    }
+
+    function renderMonthTotals(trades) {
+      if (!monthTotalList) return;
+      const months = computeMonthlyTotals(trades);
+      monthTotalList.innerHTML = "";
+      months.slice(0, 6).forEach(({ key, total }) => {
+        const row = document.createElement("div");
+        row.className = "month-total-row";
+        const label = document.createElement("div");
+        label.className = "label";
+        label.textContent = monthNameFromKey(key);
+        const value = document.createElement("div");
+        value.className = `value ${tone(total)}`;
+        value.textContent = fmtCurrency(total);
+        row.appendChild(label);
+        row.appendChild(value);
+        monthTotalList.appendChild(row);
+      });
     }
 
     function setMonth(idx) {
