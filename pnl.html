@@ -44,7 +44,7 @@
       font-weight: 500;
     }
 
-    .trendline svg {
+  .trendline svg {
       width: 100%;
       height: 80px;
     }
@@ -412,6 +412,19 @@
       transform: none;
     }
 
+    .trendline.desktop-dual {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .trendline.desktop-dual #bar-svg {
+      display: block !important;
+      height: 90px;
+    }
+    .trendline.desktop-dual .chart-dots {
+      display: none;
+    }
+
     @media (min-width: 981px) {
       .mobile-hide { display: block; }
       body { padding: 32px 18px 48px; }
@@ -689,6 +702,12 @@
       setMonth(0);
       renderYtd(ytdStats);
       switchChart(activeChart);
+
+      // On desktop show both charts stacked
+      if (window.matchMedia("(min-width: 981px)").matches && trendlineContainer) {
+        trendlineContainer.classList.add("desktop-dual");
+        if (barSvg) barSvg.style.display = "block";
+      }
     }
 
     function parseTradesFromCsv(text) {
@@ -965,6 +984,13 @@
 
     function switchChart(which) {
       if (!trendSvg || !barSvg) return;
+      if (trendlineContainer && trendlineContainer.classList.contains("desktop-dual")) {
+        trendSvg.style.display = "block";
+        barSvg.style.display = "block";
+        if (dotLine) dotLine.classList.remove("active");
+        if (dotBars) dotBars.classList.remove("active");
+        return;
+      }
       activeChart = which === "bars" ? "bars" : "line";
       const showLine = activeChart === "line";
       trendSvg.style.display = showLine ? "block" : "none";
