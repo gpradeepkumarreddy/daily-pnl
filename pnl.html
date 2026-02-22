@@ -152,22 +152,22 @@
       letter-spacing: 0.2px;
     }
 
-.month-total-list {
+    .month-total-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
       gap: 8px;
       width: 100%;
     }
 
-.month-total-row {
+    .month-total-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.02);
-      font-size: 13px;
+      font-size: 12px;
       letter-spacing: 0.1px;
     }
 
@@ -176,7 +176,7 @@
       font-weight: 600;
     }
 
-.month-total-row .value {
+    .month-total-row .value {
       font-weight: 700;
       letter-spacing: -0.1px;
     }
@@ -428,8 +428,8 @@
       }
       .shell { padding: 28px 26px 30px; max-width: 1220px; }
       .panel { padding: 16px 14px 18px; width: 100%; }
-      .calendar { gap: 12px; grid-template-columns: repeat(5, minmax(120px, 1fr)); padding-left: 6px; padding-right: 6px; }
-      .cell { min-height: 74px; padding: 10px 8px 8px; }
+      .calendar { gap: 10px; grid-template-columns: repeat(5, minmax(105px, 1fr)); padding-left: 6px; padding-right: 6px; }
+      .cell { min-height: 70px; padding: 10px 8px 8px; }
       .date { font-size: 12px; }
       .pnl { font-size: 14px; }
       .summary-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
@@ -725,20 +725,20 @@
       });
       return Object.entries(totals)
         .map(([key, total]) => ({ key, total }))
-        .sort((a, b) => b.key.localeCompare(a.key));
+        .sort((a, b) => a[0].localeCompare(b[0])); // ascending for left-to-right timeline
     }
 
     function monthNameFromKey(key) {
       const [y, m] = key.split("-");
       const date = new Date(Number(y), Number(m) - 1, 1);
-      return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+      return date.toLocaleDateString("en-US", { month: "short" });
     }
 
     function renderMonthTotals(trades) {
       if (!monthTotalList) return;
       const months = computeMonthlyTotals(trades);
       monthTotalList.innerHTML = "";
-      months.slice(0, 6).forEach(({ key, total }) => {
+      months.slice(-6).forEach(({ key, total }) => {
         const row = document.createElement("div");
         row.className = "month-total-row";
         const label = document.createElement("div");
