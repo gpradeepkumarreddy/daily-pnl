@@ -124,7 +124,7 @@
       width: 100%;
     }
 
-    .panel {
+.panel {
       background: #111720;
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -134,8 +134,29 @@
       margin: 0 auto;
     }
 
-    .panel-month {
+.panel-month {
       background: linear-gradient(145deg, rgba(110, 211, 255, 0.12), rgba(110, 211, 255, 0.04));
+    }
+
+.panel-month-total {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+.month-total-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+.month-total-value {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: rgb(var(--positive));
     }
 
     .panel h2 {
@@ -373,6 +394,11 @@
         grid-template-columns: 1.3fr 1fr;
         gap: 20px;
         align-items: start;
+        grid-template-areas:
+          "trendline panel-total"
+          "trendline calendar"
+          "snapshot snapshot"
+          "ytd ytd";
       }
       .shell { padding: 28px 26px 30px; max-width: 1220px; }
       .panel { padding: 16px 14px 18px; width: 100%; }
@@ -383,11 +409,11 @@
       .summary-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
       .ytd-grid { grid-template-columns: repeat(3, minmax(200px, 1fr)); }
       .trendline svg { height: 120px; }
-      .trendline { margin-bottom: 0; }
-      .panel-month { grid-column: 2 / 3; }
-      .trendline { grid-column: 1 / 2; }
-      .panel-snapshot { grid-column: 1 / -1; }
-      .ytd { grid-column: 1 / -1; }
+      .trendline { margin-bottom: 0; grid-area: trendline; height: 100%; }
+      .panel-month { grid-area: calendar; }
+      .panel-month-total { grid-area: panel-total; }
+      .panel-snapshot { grid-area: snapshot; }
+      .ytd { grid-area: ytd; }
     }
   </style>
 </head>
@@ -408,6 +434,11 @@
           <span class="dot active" id="dot-line"></span>
           <span class="dot" id="dot-bars"></span>
         </div>
+      </div>
+
+      <div class="panel panel-month-total">
+        <div class="month-total-label">Month total</div>
+        <div class="month-total-value" id="month-total">$0</div>
       </div>
 
       <section class="panel panel-month">
@@ -524,6 +555,7 @@
   "2026-02-19": -1038.0,
   "2026-02-20": 1245.0
 };
+
 
 
 
