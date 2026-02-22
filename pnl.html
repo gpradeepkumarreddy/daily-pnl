@@ -369,16 +369,25 @@
       .mobile-hide { display: block; }
       body { padding: 32px 18px 48px; }
       header { flex-direction: row; align-items: center; }
-      .layout { grid-template-columns: 1.4fr 1fr; gap: 22px; align-items: start; }
-      .shell { padding: 28px 26px 30px; max-width: 1200px; }
+      .layout {
+        grid-template-columns: 1.3fr 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .shell { padding: 28px 26px 30px; max-width: 1220px; }
       .panel { padding: 16px 14px 18px; width: 100%; }
-      .calendar { gap: 12px; grid-template-columns: repeat(5, minmax(100px, 1fr)); padding-left: 6px; padding-right: 6px; }
-      .cell { min-height: 104px; padding: 12px 10px 10px; }
+      .calendar { gap: 12px; grid-template-columns: repeat(5, minmax(110px, 1fr)); padding-left: 6px; padding-right: 6px; }
+      .cell { min-height: 82px; padding: 10px 8px 8px; }
       .date { font-size: 12px; }
       .pnl { font-size: 14px; }
       .summary-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
       .ytd-grid { grid-template-columns: repeat(3, minmax(200px, 1fr)); }
-      .trendline svg { height: 130px; }
+      .trendline svg { height: 120px; }
+      .trendline { margin-bottom: 0; }
+      .panel-month { grid-column: 2 / 3; }
+      .trendline { grid-column: 1 / 2; }
+      .panel-snapshot { grid-column: 1 / -1; }
+      .ytd { grid-column: 1 / -1; }
     }
   </style>
 </head>
@@ -423,7 +432,7 @@
         </div>
       </section>
 
-      <aside class="panel">
+      <aside class="panel panel-snapshot">
         <h2>Monthly snapshot</h2>
         <p class="subline">Quick metrics to keep you oriented while scanning the heat map.</p>
         <div class="summary-grid">
@@ -515,6 +524,7 @@
   "2026-02-19": -1038.0,
   "2026-02-20": 1245.0
 };
+
 
 
 
