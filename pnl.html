@@ -45,6 +45,14 @@
       letter-spacing: -0.2px;
     }
 
+.trendline .since {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.1px;
+    }
+
     .trendline svg {
       width: 100%;
       height: 80px;
@@ -476,13 +484,16 @@
 <body>
   <div class="shell">
     <header>
-      <h1>P&L</h1>
+      <h1></h1>
     </header>
 
     <div class="layout">
       <div class="trendline">
         <header>
-          <span id="trend-range"></span>
+          <div>
+            <span id="trend-range"></span>
+            <span class="since">Since 1/1/26</span>
+          </div>
         </header>
         <svg id="trend-svg" viewBox="0 0 300 80" preserveAspectRatio="none"></svg>
         <div class="chart-caption">Cumulative P&amp;L</div>
