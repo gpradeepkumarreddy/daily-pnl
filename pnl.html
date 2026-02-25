@@ -38,31 +38,11 @@
       gap: 8px;
     }
 
-.cumulative-wrap {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-.cumulative-pill {
-      width: 22px;
-      height: 22px;
-      border-radius: 12px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1;
-    }
-
 .trendline header span {
-      font-size: 26px;
+      font-size: 28px;
       color: var(--text);
-      font-weight: 600;
-      letter-spacing: -0.1px;
+      font-weight: 500;
+      letter-spacing: -0.2px;
     }
 
     .trendline svg {
@@ -502,10 +482,7 @@
     <div class="layout">
       <div class="trendline">
         <header>
-          <div class="cumulative-wrap">
-            <span class="cumulative-pill">Σ</span>
-            <span id="trend-range"></span>
-          </div>
+          <span id="trend-range"></span>
         </header>
         <svg id="trend-svg" viewBox="0 0 300 80" preserveAspectRatio="none"></svg>
         <div class="chart-caption">Cumulative P&amp;L</div>
