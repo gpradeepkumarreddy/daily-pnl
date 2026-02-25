@@ -49,8 +49,8 @@
       height: 80px;
     }
 
-    .trendline #bar-svg {
-      height: 100px;
+.trendline #bar-svg {
+      height: 140px;
     }
 
 .chart-caption {
@@ -984,7 +984,7 @@
       const values = slice.map(([, v]) => v);
       const maxAbs = Math.max(...values.map(v => Math.abs(v)), 1);
       const width = 300;
-      const height = 80;
+      const height = 120;
       const barWidth = width / slice.length;
 
       const mid = height / 2;
