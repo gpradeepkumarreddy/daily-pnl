@@ -217,14 +217,21 @@
 
 @media (max-width: 540px) {
       .month-total-list {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(90px, 1fr);
+        overflow-x: auto;
+        scrollbar-width: none;
         gap: 6px;
+        padding-bottom: 2px;
       }
+      .month-total-list::-webkit-scrollbar { display: none; }
       .month-total-row {
         padding: 8px 9px;
+        min-width: 90px;
       }
       .month-total-row .label {
-        font-size: 10px;
+        font-size: 11px;
       }
       .month-total-row .value {
         font-size: 12px;
